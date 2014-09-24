@@ -56,10 +56,8 @@
 
 #define BT_OUTPUT Serial.write // this can be adjusted per arduino in future
 
-// whoa watch out here is some global shit
-#define BUFFER_SIZE 45 // why the big buffer? just drop em if they didn't get
-// there fast enough, users will be confused if there is lag anyhow
-static volatile uint8_t buffer[BUFFER_SIZE];// how the buffer is used?
+#define BUFFER_SIZE 45 
+static volatile uint8_t buffer[BUFFER_SIZE];
 static volatile uint8_t head, tail; 
 static uint8_t DataPin;
 static uint8_t CharBuffer=0;
@@ -125,7 +123,7 @@ static inline uint8_t get_scan_code(void)
 // interation of the array in hex corrisponds to represented scan code
 const PROGMEM PS2Keymap_t PS2Keymap_US = 
 {// 8 by 16 plus a row of 4  
-	{ // without shift //where are the gui keys?
+	{ // without shift 
 	0, KEY_F9, 0, KEY_F5, KEY_F3, KEY_F1, KEY_F2, KEY_F12,
 	0, KEY_F10, KEY_F8, KEY_F6, KEY_F4, KEY_TAB, KEY_GRAVE, 0,
 	0, 0 /*Lalt*/, 0 /*Lshift*/, 0, 0 /*Lctrl*/, KEY_Q, KEY_1, 0,
@@ -135,16 +133,16 @@ const PROGMEM PS2Keymap_t PS2Keymap_US =
 	0, KEY_N, KEY_B, KEY_H, KEY_G, KEY_Y, KEY_6, 0,
 	0, 0, KEY_M, KEY_J, KEY_U, KEY_7, KEY_8, 0,
 	0, KEY_COMMA, KEY_K, KEY_I, KEY_O, KEY_0, KEY_9, 0,
-	0, KEY_PERIOD, KEY_SLASH /*'/'*/, KEY_L, KEY_SEMICOLON, KEY_P, KEY_MINUS, 0,
+	0, KEY_PERIOD, KEY_SLASH, KEY_L, KEY_SEMICOLON, KEY_P, KEY_MINUS, 0,
 	0, 0, KEY_APOSTROPHE, 0, KEY_BRACKET_LEFT, KEY_EQUAL, 0, 0,
-	KEY_BACKSPACE /*Caps*/, 0 /*Rshift*/, KEY_RETURN /*Enter*/, KEY_BRACKET_RIGHT, 0, KEY_BACKSLASH, 0, 0,
+	KEY_CAPS_LOCK, 0 /*Rshift*/, KEY_RETURN, KEY_BRACKET_RIGHT, 0, KEY_BACKSLASH, 0, 0,
 	0, 0, 0, 0, 0, 0, KEY_BACKSPACE, 0,
 	0, KEY_KEYPAD_1, 0, KEY_KEYPAD_4, KEY_KEYPAD_7, 0, 0, 0,
-	KEY_KEYPAD_0, KEY_KEYPAD_DECIMAL, KEY_KEYPAD_2, KEY_KEYPAD_5, KEY_KEYPAD_6, KEY_KEYPAD_8, KEY_ESCAPE, KEY_NUM_LOCK /*NumLock*/,
+	KEY_KEYPAD_0, KEY_KEYPAD_DECIMAL, KEY_KEYPAD_2, KEY_KEYPAD_5, KEY_KEYPAD_6, KEY_KEYPAD_8, KEY_ESCAPE, KEY_NUM_LOCK,
 	KEY_F11, KEY_KEYPAD_ADD, KEY_KEYPAD_3, KEY_KEYPAD_SUBTRACT, KEY_KEYPAD_MULTIPLY, KEY_KEYPAD_9, KEY_SCROLL_LOCK, 0,
 	0, 0, 0, KEY_F7 
 	},
-	{  // alternitive layout
+	{  // alternitive layout !! modify definitions in the header to change !!
 	0, KEY_F9, 0, KEY_F5, KEY_F3, KEY_F1, KEY_F2, KEY_F12,
 	0, KEY_F10, KEY_F8, KEY_F6, KEY_F4, KEY_TAB, ALT_KEY_GRAVE, 0,
 	0, 0 /*Lalt*/, 0 /*Lshift*/, 0, 0 /*Lctrl*/, ALT_KEY_Q, KEY_1, 0,
@@ -154,12 +152,12 @@ const PROGMEM PS2Keymap_t PS2Keymap_US =
 	0, ALT_KEY_N, ALT_KEY_B, ALT_KEY_H, ALT_KEY_G, ALT_KEY_Y, KEY_6, 0,
 	0, 0, ALT_KEY_M, ALT_KEY_J, ALT_KEY_U, KEY_7, KEY_8, 0,
 	0, ALT_KEY_COMMA, ALT_KEY_K, ALT_KEY_I, ALT_KEY_O, KEY_0, KEY_9, 0,
-	0, ALT_KEY_PERIOD, ALT_KEY_SLASH /*'/'*/, ALT_KEY_L, ALT_KEY_SEMICOLON, ALT_KEY_P, ALT_KEY_MINUS, 0,
+	0, ALT_KEY_PERIOD, ALT_KEY_SLASH, ALT_KEY_L, ALT_KEY_SEMICOLON, ALT_KEY_P, ALT_KEY_MINUS, 0,
 	0, 0, ALT_KEY_APOSTROPHE, 0, ALT_KEY_BRACKET_LEFT, ALT_KEY_EQUAL, 0, 0,
-	KEY_BACKSPACE /*Caps*/, 0 /*Rshift*/, KEY_RETURN /*Enter*/, ALT_KEY_BRACKET_RIGHT, 0, ALT_KEY_BACKSLASH, 0, 0,
+	KEY_CAPS_LOCK, 0 /*Rshift*/, KEY_RETURN, ALT_KEY_BRACKET_RIGHT, 0, ALT_KEY_BACKSLASH, 0, 0,
 	0, 0, 0, 0, 0, 0, KEY_BACKSPACE, 0,
 	0, KEY_KEYPAD_1, 0, KEY_KEYPAD_4, KEY_KEYPAD_7, 0, 0, 0,
-	KEY_KEYPAD_0, KEY_KEYPAD_DECIMAL, KEY_KEYPAD_2, KEY_KEYPAD_5, KEY_KEYPAD_6, KEY_KEYPAD_8, KEY_ESCAPE, KEY_NUM_LOCK /*NumLock*/,
+	KEY_KEYPAD_0, KEY_KEYPAD_DECIMAL, KEY_KEYPAD_2, KEY_KEYPAD_5, KEY_KEYPAD_6, KEY_KEYPAD_8, KEY_ESCAPE, KEY_NUM_LOCK,
 	KEY_F11, KEY_KEYPAD_ADD, KEY_KEYPAD_3, KEY_KEYPAD_SUBTRACT, KEY_KEYPAD_MULTIPLY, KEY_KEYPAD_9, KEY_SCROLL_LOCK, 0,
 	0, 0, 0, KEY_F7 
 	}
@@ -231,7 +229,7 @@ static char getCode(void)
 				GLOBAL_MOD |= MODIFIER_SHIFT_RIGHT;
 				continue;
 			}
-			else if (s == 0x14) //control modifier detected (is this just one?)
+			else if (s == 0x14) //control modifier detected 
 			{
 				state |= CTRL;
 				GLOBAL_MOD |= MODIFIER_CONTROL_LEFT;
@@ -249,7 +247,7 @@ static char getCode(void)
 			  GLOBAL_MOD |= MODIFIER_ALT_LEFT;
 			  continue;
 			}
-			c = 0; // why was c intialized here as opposed to when it was istantiated?
+			c = 0; 
 			if (state & MODIFIER) // two make char cases * OxE0 *
 			{
 				switch (s) 
@@ -272,20 +270,20 @@ static char getCode(void)
 			else //---Read the key map-- one make char case
 			{
 			  if(mapShift)
-			  {
+			  {// shifted layout option, variable is toggled with a key
 			    if (s< PS2_KEYMAP_SIZE){c= pgm_read_byte(keymap->shift +s);}
-			  }
+			  }// see toggle methode at the bottom of page
 			  else
 			  {// in the typical case utilize the QWERTY layout
 				  if (s < PS2_KEYMAP_SIZE){c = pgm_read_byte(keymap->noshift + s);}
 				}
-			}//given we grab something from the main keyset we are on the path pass control to main sketch
+			}
 			state &= ~(BREAK | MODIFIER); 
 			//if we got to this point break or modifier need to be removed if they exist 
 			if (c) {return c;} 
 			//return the char we convert, modification is taken care of by GLOBAL_MOD in out() 
-		}//End else
-	}//End while
+		}//End else block
+	}//End while block
 }
 //----------bluefruit functions---------
 void keyCommand(uint8_t modifiers = 0, uint8_t keycode = 0)
