@@ -67,6 +67,7 @@ static uint8_t UTF8next=0;
 static const PS2Keymap_t *keymap=NULL;
 static uint8_t GLOBAL_MOD = 0; // Modifier shared between getCode() and out() 
 // makes shift alt and control possible
+static bool mapShift = 0; // toggle for switching keymap 
 
 // The ISR for the external interrupt
 void ps2interrupt(void)
@@ -80,16 +81,16 @@ void ps2interrupt(void)
 	val = digitalRead(DataPin);
 	now_ms = millis();
 	if (now_ms - prev_ms > 250) 
-	{
+	{// timing exlaination? //if 250ms elapsed set bit and incoming back
 		bitcount = 0;
 		incoming = 0;
 	}
-	prev_ms = now_ms;
-	n = bitcount - 1;
-	if (n <= 7) {incoming |= (val << n);}
+	prev_ms = now_ms;// update stored time
+	n = bitcount - 1; // ?
+	if (n <= 7) {incoming |= (val << n);}//
 	bitcount++;
 	if (bitcount == 11) 
-	{
+	{// explain this condition
 		uint8_t i = head + 1;
 		if (i >= BUFFER_SIZE) {i = 0;}
 		if (i != tail) 
@@ -142,7 +143,26 @@ const PROGMEM PS2Keymap_t PS2Keymap_US =
 	KEY_KEYPAD_0, KEY_KEYPAD_DECIMAL, KEY_KEYPAD_2, KEY_KEYPAD_5, KEY_KEYPAD_6, KEY_KEYPAD_8, KEY_ESCAPE, KEY_NUM_LOCK /*NumLock*/,
 	KEY_F11, KEY_KEYPAD_ADD, KEY_KEYPAD_3, KEY_KEYPAD_SUBTRACT, KEY_KEYPAD_MULTIPLY, KEY_KEYPAD_9, KEY_SCROLL_LOCK, 0,
 	0, 0, 0, KEY_F7 
-	},0 // empty alt gr or whatever
+	},
+	{  // alternitive layout
+	0, KEY_F9, 0, KEY_F5, KEY_F3, KEY_F1, KEY_F2, KEY_F12,
+	0, KEY_F10, KEY_F8, KEY_F6, KEY_F4, KEY_TAB, ALT_KEY_GRAVE, 0,
+	0, 0 /*Lalt*/, 0 /*Lshift*/, 0, 0 /*Lctrl*/, ALT_KEY_Q, KEY_1, 0,
+	0, 0, ALT_KEY_Z, ALT_KEY_S, ALT_KEY_A, ALT_KEY_W, KEY_2, 0,
+	0, ALT_KEY_C, ALT_KEY_X, ALT_KEY_D, ALT_KEY_E, KEY_4, KEY_3, 0,
+	0, KEY_SPACE, ALT_KEY_V, ALT_KEY_F, ALT_KEY_T, ALT_KEY_R, KEY_5, 0,
+	0, ALT_KEY_N, ALT_KEY_B, ALT_KEY_H, ALT_KEY_G, ALT_KEY_Y, KEY_6, 0,
+	0, 0, ALT_KEY_M, ALT_KEY_J, ALT_KEY_U, KEY_7, KEY_8, 0,
+	0, ALT_KEY_COMMA, ALT_KEY_K, ALT_KEY_I, ALT_KEY_O, KEY_0, KEY_9, 0,
+	0, ALT_KEY_PERIOD, ALT_KEY_SLASH /*'/'*/, ALT_KEY_L, ALT_KEY_SEMICOLON, ALT_KEY_P, ALT_KEY_MINUS, 0,
+	0, 0, ALT_KEY_APOSTROPHE, 0, ALT_KEY_BRACKET_LEFT, ALT_KEY_EQUAL, 0, 0,
+	KEY_BACKSPACE /*Caps*/, 0 /*Rshift*/, KEY_RETURN /*Enter*/, ALT_KEY_BRACKET_RIGHT, 0, ALT_KEY_BACKSLASH, 0, 0,
+	0, 0, 0, 0, 0, 0, KEY_BACKSPACE, 0,
+	0, KEY_KEYPAD_1, 0, KEY_KEYPAD_4, KEY_KEYPAD_7, 0, 0, 0,
+	KEY_KEYPAD_0, KEY_KEYPAD_DECIMAL, KEY_KEYPAD_2, KEY_KEYPAD_5, KEY_KEYPAD_6, KEY_KEYPAD_8, KEY_ESCAPE, KEY_NUM_LOCK /*NumLock*/,
+	KEY_F11, KEY_KEYPAD_ADD, KEY_KEYPAD_3, KEY_KEYPAD_SUBTRACT, KEY_KEYPAD_MULTIPLY, KEY_KEYPAD_9, KEY_SCROLL_LOCK, 0,
+	0, 0, 0, KEY_F7 
+	}
 };
 
 #define BREAK     0x01 // 1  
@@ -251,7 +271,14 @@ static char getCode(void)
 			} 
 			else //---Read the key map-- one make char case
 			{
-				if (s < PS2_KEYMAP_SIZE){c = pgm_read_byte(keymap->noshift + s);}
+			  if(mapShift)
+			  {
+			    if (s< PS2_KEYMAP_SIZE){c= pgm_read_byte(keymap->shift +s);}
+			  }
+			  else
+			  {// in the typical case utilize the QWERTY layout
+				  if (s < PS2_KEYMAP_SIZE){c = pgm_read_byte(keymap->noshift + s);}
+				}
 			}//given we grab something from the main keyset we are on the path pass control to main sketch
 			state &= ~(BREAK | MODIFIER); 
 			//if we got to this point break or modifier need to be removed if they exist 
@@ -259,6 +286,20 @@ static char getCode(void)
 			//return the char we convert, modification is taken care of by GLOBAL_MOD in out() 
 		}//End else
 	}//End while
+}
+//----------bluefruit functions---------
+void keyCommand(uint8_t modifiers = 0, uint8_t keycode = 0)
+{
+    BT_OUTPUT(0xFD); // command signal
+    BT_OUTPUT(modifiers); // modifiers combine bit shifted state information 
+    // in order to get multiple modifications
+    BT_OUTPUT((byte)0x00); // 0x00
+    BT_OUTPUT(keycode); // key code #1
+    BT_OUTPUT(0x00); // key code #2
+    BT_OUTPUT(0x00); // key code #3
+    BT_OUTPUT(0x00); // key code #4
+    BT_OUTPUT(0x00); // key code #5
+    BT_OUTPUT(0x00); // key code #6
 }
 
 //-------- Object Methodes ---------------
@@ -273,7 +314,7 @@ bool BTKeyboard::available()
 int BTKeyboard::read() {
 	uint8_t result;
 
-	result = UTF8next; // is UTF8next global? why..
+	result = UTF8next;
 	if (result) {UTF8next = 0;} 
 	else 
 	{
@@ -366,33 +407,22 @@ void BTKeyboard::begin(uint8_t data_pin, uint8_t irq_pin, const PS2Keymap_t &map
 }
 
 
-void BTKeyboard::out(uint8_t modifiers, uint8_t keycode1, uint8_t keycode2,
-    uint8_t keycode3, uint8_t keycode4, uint8_t keycode5, uint8_t keycode6)
+void BTKeyboard::out(uint8_t modifiers, uint8_t keycode)
 { 
     uint8_t mod;//switch variable for modifications
     
     if(modifiers) { mod = modifiers;}// given an argument passed, ignore keys
     else          { mod = GLOBAL_MOD;} // modifications as true to keys
     
-    BT_OUTPUT(0xFD); // command signal
-    BT_OUTPUT(mod); // modifiers combine bit shifted state information 
-    // in order to get multiple modifications
-    BT_OUTPUT((byte)0x00); // 0x00
-    BT_OUTPUT(keycode1); // key code #1
-    BT_OUTPUT(keycode2); // key code #2
-    BT_OUTPUT(keycode3); // key code #3
-    BT_OUTPUT(keycode4); // key code #4
-    BT_OUTPUT(keycode5); // key code #5
-    BT_OUTPUT(keycode6); // key code #6
+    keyCommand(mod, keycode);
     //----------------- Send break ! --- important or keys stay depressed
-    BT_OUTPUT(0xFD); // command signal
-    BT_OUTPUT(0x00); // modifiers combine bit shifted state information 
-    // in order to get multiple modifications
-    BT_OUTPUT((byte)0x00); // 0x00
-    BT_OUTPUT(0x00); // key code #1
-    BT_OUTPUT(0x00); // key code #2
-    BT_OUTPUT(0x00); // key code #3
-    BT_OUTPUT(0x00); // key code #4
-    BT_OUTPUT(0x00); // key code #5
-    BT_OUTPUT(0x00); // key code #6
+    if(keycode)
+    {
+      keyCommand();//empty == break, arguments default to zero
+    }
+}
+
+void BTKeyboard::toggle(void)
+{
+   mapShift = !mapShift;
 }

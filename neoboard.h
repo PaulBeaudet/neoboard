@@ -40,7 +40,7 @@
 
 #include "utility/int_pins.h"
 
-#define PS2_KEYMAP_SIZE 136 // why 136? do you have a keyboard that big?
+#define PS2_KEYMAP_SIZE 136 // why 136? 
 
 //Bluefruit keymaping - Outgoing communication
 // might as well reuse these bytes if possible rigt?
@@ -100,7 +100,6 @@
 #define KEY_BRACKET_LEFT       byte(0x2F)
 #define KEY_BRACKET_RIGHT      byte(0x30)
 #define KEY_BACKSLASH          byte(0x31)
-#define KEY_EUROPE_1           byte(0x32)
 #define KEY_SEMICOLON          byte(0x33)
 #define KEY_APOSTROPHE         byte(0x34)
 #define KEY_GRAVE              byte(0x35)
@@ -154,14 +153,47 @@
 #define KEY_APPLICATION        byte(0x65)
 #define KEY_POWER              byte(0x66)
 #define KEY_KEYPAD_EQUAL       byte(0x67)
-#define KEY_CONTROL_LEFT       byte(0xE0)
-#define KEY_SHIFT_LEFT         byte(0xE1)
-#define KEY_ALT_LEFT           byte(0xE2)
-#define KEY_GUI_LEFT           byte(0xE3)
-#define KEY_CONTROL_RIGHT      byte(0xE4)
-#define KEY_SHIFT_RIGHT        byte(0xE5)
-#define KEY_ALT_RIGHT          byte(0xE6)
-#define KEY_GUI_RIGHT          byte(0xE7)
+//-------alt layout----------------//Dvorak
+//Change here --V--       True mapping-----v 
+#define ALT_KEY_A              byte(0x04)//A
+#define ALT_KEY_N              byte(0x05)//B
+#define ALT_KEY_I              byte(0x06)//C
+#define ALT_KEY_H              byte(0x07)//D
+#define ALT_KEY_D              byte(0x08)//E
+#define ALT_KEY_Y              byte(0x09)//F
+#define ALT_KEY_U              byte(0x0A)//G
+#define ALT_KEY_J              byte(0x0B)//H
+#define ALT_KEY_G              byte(0x0C)//I
+#define ALT_KEY_C              byte(0x0D)//J
+#define ALT_KEY_V              byte(0x0E)//K
+#define ALT_KEY_P              byte(0x0F)//L
+#define ALT_KEY_M              byte(0x10)//M
+#define ALT_KEY_L              byte(0x11)//N
+#define ALT_KEY_S              byte(0x12)//O
+#define ALT_KEY_R              byte(0x13)//P
+#define ALT_KEY_X              byte(0x14)//Q
+#define ALT_KEY_O              byte(0x15)//R
+#define ALT_KEY_SEMICOLON      byte(0x16)//S
+#define ALT_KEY_K              byte(0x17)//T
+#define ALT_KEY_F              byte(0x18)//U
+#define ALT_KEY_PERIOD         byte(0x19)//V
+#define ALT_KEY_COMMA          byte(0x1A)//W
+#define ALT_KEY_B              byte(0x1B)//X
+#define ALT_KEY_T              byte(0x1C)//Y
+#define ALT_KEY_SLASH          byte(0x1D)//Z
+#define ALT_KEY_APOSTROPHE     byte(0x2D)//-
+#define ALT_KEY_BRACKET_RIGHT  byte(0x2E)//=
+#define ALT_KEY_MINUS          byte(0x2F)//{
+#define ALT_KEY_EQUAL          byte(0x30)//}
+#define ALT_KEY_BACKSLASH      byte(0x31)// backslash
+#define ALT_KEY_Z              byte(0x33)// semicolon
+#define ALT_KEY_Q              byte(0x34)//'
+#define ALT_KEY_GRAVE          byte(0x35)//`
+#define ALT_KEY_W              byte(0x36)//,
+#define ALT_KEY_E              byte(0x37)//.
+#define ALT_KEY_BRACKET_LEFT   byte(0x38)///
+//             |^|                        |^|
+//Change Here>>|*|-----actual mapping--->>|^|                   
 
 typedef struct 
 {
@@ -203,16 +235,10 @@ class BTKeyboard {
      * If there is no char availble, -1 is returned.
      *?? how are keycobinations be returned? 
      */
-    static int read();//why is this methode an int?
+    static int read();
     
-    #define UNO_OUT Serial.write
-    #define LEO_OUT Serial1.write
-    
-    static void bluefruitUp();
-    
-    static void out(uint8_t modifiers = 0, uint8_t keycode1=0, 
-    uint8_t keycode2 = 0, uint8_t keycode3 = 0, uint8_t keycode4 = 0, 
-    uint8_t keycode5 = 0, uint8_t keycode6 = 0); // sends output signal  
+    static void out(uint8_t modifiers = 0, uint8_t keycode=0); // sends output signal
+    static void toggle(); 
 };
 
 #endif
